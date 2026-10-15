@@ -1,3 +1,4 @@
+import { GameArtIcon } from "@/components/game-art-icon";
 import worldArt from "@/assets/mana-world.jpg";
 import { CROPS, STRUCTURES, type Tool, type CropKind, type StructureKind } from "@/game/settlement";
 import { Pickaxe, Axe, Shovel, Sprout, Droplets, Hammer, House, Anvil, Save, ChevronRight, Leaf, Sun, Swords, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
@@ -5,7 +6,7 @@ import { BIOME_LIST } from "@/game/world";
 import { BIOME_NAMES } from "@/game/data";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Compass, Backpack, ScrollText, Map, UserRound, Volume2, VolumeX, X, Sparkles, Play } from "lucide-react";
+import { Maximize, Minimize, Settings2, Compass, Backpack, ScrollText, Map, UserRound, Volume2, VolumeX, X, Sparkles, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BUILDINGS, TREASURES } from "@/game/exploration";
 import { W, H } from "@/game/world";
@@ -62,7 +63,8 @@ function Index() {
   const gameRef = useRef<Game | null>(null);
   const [, setTick] = useState(0);
   const [panel, setPanel] = useState<Panel>(null);
-  const [title, setTitle] = useState(true);
+  const [title, setTitle] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const [hasSave, setHasSave] = useState(false);
   const [mapUrl, setMapUrl] = useState("");
   const panelRef = useRef<Panel>(null);
@@ -73,6 +75,12 @@ function Index() {
     if (!cv) return;
     const g = new Game(cv);
     gameRef.current = g;
+    g.started = true;
+    if (Game.hasSave()) g.load();
+    const resize = () => g.resize(window.innerWidth, window.innerHeight);
+    resize(); window.addEventListener("resize",resize);
+    const screenChange = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange",screenChange);
     setHasSave(Game.hasSave());
     setMapUrl(g.mapDataUrl());
     g.onMapClick = () => setPanel("map");
@@ -107,7 +115,7 @@ function Index() {
     const up = (e: KeyboardEvent) => g.keys.delete(e.code);
     const blur = () => g.keys.clear(); window.addEventListener("blur",blur);
     window.addEventListener("keydown", down); window.addEventListener("keyup", up);
-    return () => { cancelAnimationFrame(raf); clearInterval(iv); window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); g.audio.destroy(); window.removeEventListener("blur",blur); };
+    return () => { window.removeEventListener("resize",resize); document.removeEventListener("fullscreenchange",screenChange); cancelAnimationFrame(raf); clearInterval(iv); window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); g.audio.destroy(); window.removeEventListener("blur",blur); };
   }, []);
 
   const g = gameRef.current;
@@ -128,52 +136,48 @@ function Index() {
   const stats = g?.stats();
 
   return (
-    <main className="game-shell min-h-screen bg-background text-foreground select-none">
+    <main className="game-shell immersive min-h-screen bg-background text-foreground select-none">
       <div className="game-layout">
         <header className="game-header">
           <div className="game-brand"><Leaf size={25}/><span>MANA <span className="text-primary">ECHOES</span><small>CRÔNICAS DE UM MUNDO VIVO</small></span></div>
           <div className="header-right"><span className="world-status"/><span>Aventura solo</span><span className="header-separator"/><span className="edition-label">LEGACY · EDIÇÃO EXPANDIDA</span></div>
         </header>
         <div className="game-location"><span className="flex items-center gap-2"><Compass size={15} className="text-primary"/>{title ? 'Vila de Potos' : g?.areaName}<ChevronRight size={12}/><span className="text-muted-foreground">{title ? 'O início de tudo' : 'Terras de Mana'}</span></span><span className="flex items-center gap-2 text-muted-foreground"><Sun size={15}/>{title ? 'Primavera · Dia 1' : `${g?.timeLabel()} · ${g?.raining ? 'Chuva' : 'Céu aberto'}`}</span></div>
-      <div className="relative w-full aspect-video game-viewport overflow-hidden">
+      <div className="relative w-full game-viewport overflow-hidden">
         <canvas ref={canvasRef} width={VW} height={VH} aria-label="Mundo de Mana" onMouseMove={(e)=>{if(!g)return;const r=e.currentTarget.getBoundingClientRect();g.cursor={x:Math.floor(((e.clientX-r.left)/r.width*VW+g.cam.x)/16),y:Math.floor(((e.clientY-r.top)/r.height*VH+g.cam.y)/16)};}} onMouseDown={onMouse} onContextMenu={(e) => e.preventDefault()} className="w-full h-full block" style={{ imageRendering: "pixelated" }} />
 
         {g && p && stats && !title && (
           <>
             {/* HUD */}
-            <div className="absolute top-2 left-2 game-panel p-2 space-y-1 text-[12px]">
-              <div className="flex gap-3 text-primary"><span>Nv {p.level}</span><span>💰 {p.gold}</span><span>{g.timeLabel()}</span>{p.points > 0 && <span className="text-accent animate-pulse">+{p.points} pts</span>}</div>
+            <div className="player-hud game-panel p-3 space-y-2 text-[12px]">
+              <div className="player-name"><GameArtIcon cell={8}/><span>Aventureiro<small>GUARDIÃO DE MANA</small></span><b>{p.level}</b></div><div className="flex gap-3 text-primary"><span>Nível {p.level}</span><span>💰 {p.gold}</span><span>{g.timeLabel()}</span>{p.points > 0 && <span className="text-accent animate-pulse">+{p.points} pts</span>}</div>
               <Bar v={p.hp} max={g.maxHp()} cls="bg-destructive" label="HP" />
               <Bar v={p.mp} max={g.maxMp()} cls="bg-mana" label="MP" />
               <Bar v={p.xp} max={g.xpNeed()} cls="bg-primary" label="XP" />
             </div>
-            <div className="quest-tracker absolute top-[24%] right-2 game-panel p-2 w-48 text-[11px] space-y-1">
-              <div className="text-primary">SUA JORNADA</div>
+            <div className="quest-tracker game-panel p-4 text-[12px] space-y-2">
+              <div className="text-primary quest-heading"><GameArtIcon cell={7}/> SUA JORNADA</div>
               {QUESTS.filter((q) => g.questStatus[q.id] === "active").slice(0, 4).map((q) => (
                 <div key={q.id}><span className={q.main ? "text-primary" : "text-accent"}>{q.main ? "★" : "!"} {q.title}</span><div className="opacity-80">{g.questReady(q) ? "✔ Retorne ao NPC" : g.questProgressText(q)}</div></div>
               ))}
-              {!QUESTS.some((q) => g.questStatus[q.id] === "active") && <div className="opacity-70">Procure NPCs com "!"</div>}
+              {!QUESTS.some((q) => g.questStatus[q.id] === "active") && <div className="opacity-80">O chamado de Mana<small className="block mt-2 text-muted-foreground">Encontre Gorm na Vila de Potos</small></div>}
             </div>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-              {SPIRITS.map((s, i) => {
-                const has = p.spirits.includes(s.id);
-                return (
-                  <Button variant="game" key={s.id} onClick={() => has && g.cast(s.id)} title={`${s.name}: ${s.spell} (${s.mp} MP) — ${s.desc}`}
-                    className={`game-panel w-14 h-14 text-[10px] flex flex-col items-center justify-center ${p.spell === s.id ? "ring-2 ring-primary" : ""} ${has ? "" : "opacity-30"}`}>
-                    <span className="w-4 h-4 rounded-full" style={{ background: s.color, boxShadow: `0 0 8px ${s.color}` }} />
-                    <span>{i + 1}</span><span className="truncate w-full text-center">{has ? s.name : "???"}</span>
-                  </Button>
-                );
-              })}
-              <div className="game-panel h-14 px-2 text-[10px] flex flex-col justify-center gap-1">
-                <span>H: Poção ×{g.count("potion") + g.count("hi_potion")}</span><span>G: Éter ×{g.count("ether")}</span>
-              </div>
+            <div className="spirit-dock">{SPIRITS.map((sp,i)=><Button variant="ghost" key={sp.id} disabled={!p.spirits.includes(sp.id)} title={sp.name+' — '+sp.spell} aria-label={sp.name} onClick={()=>g.cast(sp.id)} className={p.spell===sp.id?'spirit-selected':''}><GameArtIcon cell={3}/><span>{i+1}</span></Button>)}</div>
+            <div className="world-minimap game-panel"><Button variant="ghost" className="minimap-open" aria-label="Abrir mapa" onClick={()=>setPanel('map')}><img src={mapUrl} alt="Mapa de Mana" width={1280} height={960}/><span className="map-player" style={{left:`${p.x/16/W*100}%`,top:`${p.y/16/H*100}%`}}/><span className="minimap-caption"><GameArtIcon cell={6}/> TERRAS DE MANA</span></Button></div>
+            <div className="action-cluster">
+              <Button variant="ghost" className="orb orb-magic" title="Magia" aria-label="Magia" onClick={()=>g.cast(p.spell)}><GameArtIcon cell={3}/><span>Magia</span></Button>
+              <Button variant="ghost" className="orb orb-mine" title="Minerar" aria-label="Minerar" onClick={()=>{g.tool='mine';const dx=p.dir===1?-22:p.dir===2?22:0,dy=p.dir===3?-22:p.dir===0?22:0;g.useTool(p.x+dx,p.y+dy);}}><GameArtIcon cell={1}/><span>Minerar</span></Button>
+              <Button variant="ghost" className="orb orb-axe" title="Cortar madeira" aria-label="Cortar madeira" onClick={()=>{g.tool='axe';const dx=p.dir===1?-22:p.dir===2?22:0,dy=p.dir===3?-22:p.dir===0?22:0;g.useTool(p.x+dx,p.y+dy);}}><GameArtIcon cell={2}/><span>Cortar</span></Button>
+              <Button variant="ghost" className="orb orb-interact" title="Interagir" aria-label="Interagir" onClick={()=>{g.tool='explore';g.interact();}}><GameArtIcon cell={7}/><span>Interagir</span></Button>
+              <Button variant="ghost" className="orb orb-potion" title="Poção" aria-label="Poção" onClick={()=>g.quickPotion()}><GameArtIcon cell={4}/><span>Poção</span></Button>
+              <Button variant="ghost" className="orb orb-attack" title="Atacar" aria-label="Atacar" onClick={()=>{g.tool='explore';g.attack();}}><GameArtIcon cell={0}/><span>Atacar</span></Button>
             </div>
+            <div className="movement-pad">{[{key:'KeyW',icon:ArrowUp},{key:'KeyA',icon:ArrowLeft},{key:'KeyS',icon:ArrowDown},{key:'KeyD',icon:ArrowRight}].map(({key,icon:I})=><Button key={key} variant="ghost" aria-label={{KeyW:'Mover para cima',KeyA:'Mover para esquerda',KeyS:'Mover para baixo',KeyD:'Mover para direita'}[key]} onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);g.keys.add(key);}} onPointerUp={()=>g.keys.delete(key)} onLostPointerCapture={()=>g.keys.delete(key)}><I/></Button>)}</div>
             <div className="hidden">WASD/clique mover · Espaço/clique atacar<br />1-5/R/botão dir. magia · E interagir<br />I inv · C atributos · Q missões · M mapa · N som</div>
-            <div className="game-toasts absolute top-32 left-2 space-y-1">
+            <div className="game-toasts space-y-1">
               {g.toasts.map((t, i) => <div key={i} className="game-panel px-2 py-1 text-[11px]" style={{ color: t.color, opacity: Math.min(1, t.t) }}>{t.text}</div>)}
             </div>
-            {g.biomeBanner.t > 0 && <div className="absolute top-[18%] left-1/2 -translate-x-1/2 text-primary text-lg biome-banner text-center" style={{ opacity: Math.min(1, g.biomeBanner.t) }}>{g.biomeBanner.name}</div>}
+            {g.biomeBanner.t > 0 && <div className="absolute top-[28%] left-1/2 -translate-x-1/2 text-primary text-lg biome-banner text-center" style={{ opacity: Math.min(1, g.biomeBanner.t) }}>{g.biomeBanner.name}</div>}
             {g.activeBoss && g.activeBoss.alive && g.activeBoss.boss && (
               <div className="absolute top-16 left-1/2 -translate-x-1/2 w-1/2 game-panel p-2 text-[12px]">
                 <div className="flex justify-between"><span className="text-destructive">{g.activeBoss.boss.def.name}</span><span>Fase {g.activeBoss.boss.phase}</span></div>
@@ -293,15 +297,11 @@ function Index() {
           {panel === 'farm' ? <><div className="choice-grid">{(Object.entries(CROPS) as [CropKind,typeof CROPS.carrot][]).map(([id,crop])=><Button variant="outline" key={id} className="choice-item" onClick={()=>{g.crop=id;g.tool='seed';setPanel(null);}}><Sprout/><span>{crop.name}<small>{g.count(crop.seed)} sementes · {crop.seconds}s</small></span></Button>)}</div><div className="flex gap-2 mt-4"><Button variant="secondary" onClick={()=>{g.tool='till';setPanel(null);}}><Shovel/>Preparar terra</Button><Button variant="secondary" onClick={()=>{g.tool='water';setPanel(null);}}><Droplets/>Regar</Button></div><div className="progress-line mt-5">{g.settlement.plots.length} canteiros · {g.settlement.harvests} colheitas</div></> : panel === 'build' ? <div className="choice-grid">{(Object.entries(STRUCTURES) as [StructureKind,typeof STRUCTURES.home][]).map(([id,def])=><Button variant="outline" className="choice-item" key={id} onClick={()=>{g.structure=id;g.tool='build';setPanel(null);}}><House/><span>{def.name}<small>{Object.entries(def.cost).map(([key,n])=>`${ITEMS[key].name} ${g.count(key)}/${n}`).join(' · ')}</small></span></Button>)}</div> : <div className="choice-grid"><Button variant="outline" className="choice-item" onClick={()=>{g.openStation='carpenter';setPanel(null);}}><Hammer/><span>Carpintaria<small>Tábuas e materiais</small></span></Button><Button variant="outline" className="choice-item" onClick={()=>{g.openStation='smith';setPanel(null);}}><Anvil/><span>Forja<small>Lingotes, armas e armaduras</small></span></Button><Button variant="outline" className="choice-item" onClick={()=>{g.openStation='alchemist';setPanel(null);}}><Sparkles/><span>Alquimia<small>Poções e amuletos</small></span></Button><Button variant="outline" className="choice-item" onClick={()=>{g.openStation='shop';setPanel(null);}}><Backpack/><span>Mercado<small>Sementes e suprimentos</small></span></Button></div>}
         </Modal>}
       </div>
-      <footer className="game-toolbar">
-        <div className="toolbar-actions">{([{p:'inv',icon:Backpack,label:'Inventário'},{p:'char',icon:UserRound,label:'Herói'},{p:'quest',icon:ScrollText,label:'Missões'},{p:'map',icon:Map,label:'Mapa'},{p:'secrets',icon:Compass,label:'Descobertas'}] as const).map(({p:tab,icon:ToolIcon,label})=><Button key={tab} variant="ghost" size="icon" disabled={title} title={label} aria-label={label} onClick={()=>setPanel(panel===tab?null:tab)} className={panel===tab?'text-primary':'text-muted-foreground'}><ToolIcon size={18}/></Button>)}<span className="toolbar-divider"/>{([{id:'explore',icon:Swords,label:'Explorar'},{id:'mine',icon:Pickaxe,label:'Minerar'},{id:'axe',icon:Axe,label:'Cortar madeira'},{id:'till',icon:Shovel,label:'Preparar terra'},{id:'water',icon:Droplets,label:'Regar'}] as const).map(({id,icon:ToolIcon,label})=><Button key={id} variant="ghost" size="icon" aria-label={label} title={label} disabled={title} onClick={()=>{if(g)g.tool=id;}} className={g?.tool===id&&!title?'tool-active':'text-muted-foreground'}><ToolIcon size={18}/></Button>)}</div>
-        <span className="footer-chapter">{title ? 'SUA HISTÓRIA. SEU MUNDO.' : g?.tool === 'explore' ? `${g?.settlement.structures.length} CONSTRUÇÕES · ${g?.settlement.harvests} COLHEITAS` : ({mine:'MINERAÇÃO',axe:'LENHADOR',till:'PREPARAR TERRA',seed:'PLANTAÇÃO',water:'IRRIGAÇÃO',build:'CONSTRUÇÃO'} as Record<string,string>)[g?.tool ?? '']}</span>
-        <div className="flex gap-1"><Button variant="ghost" size="icon" disabled={title} title="Salvar jornada" aria-label="Salvar jornada" onClick={()=>{g?.save();g?.toast('Jornada salva.');}}><Save size={18}/></Button><Button variant="ghost" size="icon" title="Alternar áudio" aria-label="Alternar áudio" onClick={()=>g?.audio.toggleMute()}>{g?.audio.muted?<VolumeX size={18}/>:<Volume2 size={18}/>}</Button></div>
+      <footer className="immersive-nav game-panel">
+        {([{p:'inv',cell:5,label:'Inventário'},{p:'quest',cell:6,label:'Missões'},{p:'map',cell:7,label:'Mapa'},{p:'farm',cell:8,label:'Cultivar'},{p:'build',cell:9,label:'Construir'},{p:'workshop',cell:1,label:'Oficinas'},{p:'char',cell:3,label:'Herói'},{p:'secrets',cell:7,label:'Descobertas'}] as const).map(({p:tab,cell,label})=><Button key={tab} variant="ghost" aria-label={label} title={label} onClick={()=>setPanel(panel===tab?null:tab)} className={panel===tab?'nav-selected':''}><GameArtIcon cell={cell}/></Button>)}
       </footer>
-      <section className="world-band"><div className="band-heading"><span className="section-eyebrow">ALÉM DA AVENTURA</span><h2>Crie raízes em Mana.</h2><span className="text-muted-foreground text-sm">Um mundo para explorar. Um lugar para ficar.</span></div><div className="activity-grid">{[{icon:Compass,name:'Novos horizontes',detail:'13 biomas · um mundo conectado',panel:'map'},{icon:Pickaxe,name:'Sob a superfície',detail:'Minérios, cristais e descobertas',tool:'mine'},{icon:Sprout,name:'Da semente à colheita',detail:'Seu próprio jardim de Mana',panel:'farm'},{icon:House,name:'Um lugar seu',detail:'Construa, decore e descanse',panel:'build'},{icon:Anvil,name:'Feito pelas suas mãos',detail:'Carpintaria, forja e alquimia',panel:'workshop'}].map(a=><Button variant="ghost" key={a.name} className="activity" onClick={()=>{if(title)start(false);if(a.panel)setPanel(a.panel as Panel);else if(g)g.tool=a.tool as Tool;}}><a.icon size={23}/><span><strong>{a.name}</strong><small>{a.detail}</small></span><ChevronRight size={14}/></Button>)}</div></section>
-      <section className="biome-strip"><span className="section-eyebrow">TERRAS A DESCOBRIR</span><div>{BIOME_LIST.map((b,i)=><span key={b} className={`biome-tag biome-${i}`}><span/>{BIOME_NAMES[b].replace('Floresta Ancestral dos Espíritos','Floresta Ancestral').replace('Deserto das Areias Místicas','Areias Místicas').replace('Cavernas de Cristais de Mana','Cavernas de Cristal').replace('Picos da Montanha Sagrada','Picos Sagrados')}</span>)}</div></section>
-      {!title && <div className="mobile-controls"><div className="direction-controls">{[{key:'KeyW',icon:ArrowUp},{key:'KeyA',icon:ArrowLeft},{key:'KeyS',icon:ArrowDown},{key:'KeyD',icon:ArrowRight}].map(({key,icon:I})=><Button variant="secondary" size="icon" key={key} aria-label={key} onPointerDown={()=>g?.keys.add(key)} onPointerUp={()=>g?.keys.delete(key)} onPointerLeave={()=>g?.keys.delete(key)}><I/></Button>)}</div><Button variant="secondary" size="icon" aria-label="Atacar" onClick={()=>g?.attack()}><Swords/></Button><Button variant="secondary" size="icon" aria-label="Interagir" onClick={()=>g?.interact()}><Sparkles/></Button></div>}
-      <div className="bottom-note"><Leaf size={12}/><span>MANA ECHOES</span><a href="/game-credits.txt" target="_blank" rel="noreferrer">Créditos · Source of Mana</a><span>LEGACY · 2026</span></div>
+      <div className="screen-tools"><Button variant="ghost" size="icon" title="Salvar jornada" aria-label="Salvar jornada" onClick={()=>{g?.save();g?.toast('Jornada salva.');}}><Save/></Button><Button variant="ghost" size="icon" title="Alternar áudio" aria-label="Alternar áudio" onClick={()=>{g?.audio.init();g?.audio.toggleMute();}}>{g?.audio.muted?<VolumeX/>:<Volume2/>}</Button><Button variant="ghost" size="icon" title="Tela cheia" aria-label="Tela cheia" onClick={async()=>{try {if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{g?.toast('Tela cheia indisponível neste navegador.');}}}>{fullscreen?<Minimize/>:<Maximize/>}</Button></div>
+      <div className="world-caption"><span className="world-status"/> AVENTURA SOLO <span>17 BIOMAS · MUNDO EXPANDIDO</span><a href="/game-credits.txt" target="_blank" rel="noreferrer">Créditos</a></div>
       </div>
     </main>
   );
