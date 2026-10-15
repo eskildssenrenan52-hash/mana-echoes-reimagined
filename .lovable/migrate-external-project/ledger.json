@@ -5,29 +5,33 @@
       "capability": "game code, combat, quests, inventory, interiors, spirits, farming, building, crafting, audio",
       "source": "repository inspection",
       "outcome": "migrate",
-      "status": "pending",
-      "next_action": "Import and verify"
+      "status": "verified",
+      "next_action": null,
+      "evidence": "Original modules imported; eight tests passed. Browser movement, attack control, inventory, mining, planting and watering verified. Full campaign and all crafting recipes not played through."
     },
     {
       "capability": "browser saved game",
       "source": "repository inspection",
       "outcome": "preserve",
-      "status": "pending",
-      "next_action": "Import and verify"
+      "status": "verified",
+      "next_action": null,
+      "evidence": "Saved mined ore and watered carrot plot; reloaded and read back player coordinates and crop state. Original save key retained."
     },
     {
       "capability": "original art and attribution",
       "source": "repository inspection",
       "outcome": "migrate",
-      "status": "pending",
-      "next_action": "Import and verify"
+      "status": "verified",
+      "next_action": null,
+      "evidence": "Credits preserved; generated bundled atlases render for ground, vegetation, player, cottages and primary action/navigation buttons. Original procedural enemies, NPCs, interiors, item icons and utility symbols remain."
     },
     {
       "capability": "world expansion, generated artwork and full-screen controls",
       "source": "repository inspection",
       "outcome": "migrate",
-      "status": "pending",
-      "next_action": "Import and verify"
+      "status": "verified",
+      "next_action": null,
+      "evidence": "1280x960 world, 16 times original area, 17 biomes. Four new biome locations rendered without runtime errors. Circular bottom-right actions, desktop/mobile viewport fill, and browser fullscreen verified."
     },
     {
       "capability": "auth, database, providers, webhooks and schedules",
@@ -40,8 +44,9 @@
       "capability": "cutover and verification",
       "source": "repository inspection",
       "outcome": "migrate",
-      "status": "pending",
-      "next_action": "Import and verify"
+      "status": "verified",
+      "next_action": null,
+      "evidence": "Current build OK; eight tests passed; browser checks had no page errors. Not published; no external production endpoints detected."
     }
   ]
 }
