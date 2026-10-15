@@ -1,7 +1,7 @@
 import { BOSSES, NPCS, STATUES, type Biome } from "./data";
 
-export const W = 320;
-export const H = 240;
+export const W = 1280;
+export const H = 960;
 export const TS = 16;
 
 export const T = {
@@ -30,9 +30,16 @@ export interface World {
   biomes: Uint8Array;
   nodes: Node[];
 }
-export const BIOME_LIST: Biome[] = ["plains", "forest", "desert", "cave", "mountain", "autumn", "swamp", "coast", "jungle", "volcanic", "mushroom", "meadow", "ruins"];
+export const BIOME_LIST: Biome[] = ["plains", "forest", "desert", "cave", "mountain", "autumn", "swamp", "coast", "jungle", "volcanic", "mushroom", "meadow", "ruins", "cherry", "aurora", "enchanted", "badlands"];
 
 function biomeAt(x: number, y: number): Biome {
+  // Original campaign stays intact; the surrounding continent adds connected regions.
+  if (x >= 310 || y >= 230) {
+    const bx = Math.floor((x + (noise(x/40,y/40,71)-.5)*48)/150);
+    const by = Math.floor((y + (noise(x/40,y/40,72)-.5)*48)/135);
+    const regions: Biome[] = ["cherry","coast","enchanted","autumn","aurora","jungle","badlands","mushroom","ruins","meadow","mountain","forest","desert","swamp","volcanic","plains","cave"];
+    return regions[((bx*7+by*5)%regions.length+regions.length)%regions.length];
+  }
   const nx = (noise(x / 12, y / 12, 3) - 0.5) * 16;
   const ny = (noise(x / 12, y / 12, 5) - 0.5) * 16;
   const X = x + nx, Y = y + ny;
@@ -58,7 +65,11 @@ export function generateWorld(): World {
     const n = fbm(x / 9, y / 9, 11);
     const r = hash(x, y, 99);
     let t: number = T.GRASS;
-    if (b === "autumn") { t = n > .62 ? T.AUTUMN_TREE : T.AUTUMN; }
+    if (b === "cherry") { t = r > .87 ? T.AUTUMN_TREE : r > .55 ? T.MEADOW : T.FLOWER; }
+    else if (b === "aurora") { t = n > .64 ? T.PINE : r > .98 ? T.CRYSTAL : n < .3 ? T.ICE : T.SNOW; }
+    else if (b === "enchanted") { t = r > .9 ? T.MUSHROOM : n > .65 ? T.DTREE : r > .98 ? T.CRYSTAL : T.MOSS; }
+    else if (b === "badlands") { t = n > .7 ? T.ROCK : r > .985 ? T.PILLAR : T.DUNE; }
+    else if (b === "autumn") { t = n > .62 ? T.AUTUMN_TREE : T.AUTUMN; }
     else if (b === "swamp") { t = n < .35 ? T.WATER : n > .63 ? T.DTREE : T.MOSS; }
     else if (b === "coast") { t = n < .38 ? T.WATER : r > .95 ? T.PALM : T.SAND; }
     else if (b === "jungle") { t = n > .58 ? T.PALM : r > .89 ? T.DTREE : T.MOSS; }
@@ -170,6 +181,10 @@ export function generateWorld(): World {
   for (const n of NPCS) { const t = get(n.tx, n.ty); if (SOLID.has(t)) set(n.tx, n.ty, floorOf(n.tx, n.ty)); }
   clear(121, 38, 2, T.SNOW);
 
+  // Arterial paths link every new region to the original campaign.
+  for (let y = 202; y < H-12; y += 135) road([[140,y],[W-12,y]],1);
+  for (let x = 290; x < W-12; x += 150) road([[x,145],[x,H-12]],1);
+  road([[140,202],[140,H-12]],1);
   // resource nodes
   const nodes: Node[] = [];
   let id = 0;

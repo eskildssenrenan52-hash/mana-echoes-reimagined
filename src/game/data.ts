@@ -103,8 +103,9 @@ export const ENEMIES: Record<EnemyKind, EnemyDef> = {
   shade: { kind: "shade", name: "Espírito Sombrio", hp: 120, atk: 24, def: 4, speed: 34, xp: 65, gold: 25, ranged: true, drops: [["mana_shard", 0.6], ["ether", 0.2], ["crystal_ore", 0.2]], size: 8 },
 };
 
-export type Biome = "plains" | "forest" | "desert" | "cave" | "mountain" | "autumn" | "swamp" | "coast" | "jungle" | "volcanic" | "mushroom" | "meadow" | "ruins";
+export type Biome = "plains" | "forest" | "desert" | "cave" | "mountain" | "autumn" | "swamp" | "coast" | "jungle" | "volcanic" | "mushroom" | "meadow" | "ruins" | "cherry" | "aurora" | "enchanted" | "badlands";
 export const BIOME_NAMES: Record<Biome, string> = {
+  cherry: "Jardins de Sakura", aurora: "Vale da Aurora", enchanted: "Floresta Luminescente", badlands: "Desfiladeiro Rubro",
   autumn: "Bosque de Âmbar", swamp: "Pântano dos Vagalumes", coast: "Costa de Candor", jungle: "Selva de Argaes", volcanic: "Caldeira de Kaore", mushroom: "Bosque dos Cogumelos", meadow: "Pradaria de Aethyra", ruins: "Ruínas de Artis",
   plains: "Planícies de Potos",
   forest: "Floresta Ancestral dos Espíritos",
@@ -113,6 +114,7 @@ export const BIOME_NAMES: Record<Biome, string> = {
   mountain: "Picos da Montanha Sagrada",
 };
 export const BIOME_ENEMIES: Record<Biome, EnemyKind[]> = {
+  cherry: ["mushroom", "sporeling"], aurora: ["wolf", "shade"], enchanted: ["sporeling", "shade"], badlands: ["scorpion", "golem"],
   autumn: ["goblin", "wolf"], swamp: ["sporeling", "shade"], coast: ["scorpion", "goblin"], jungle: ["sporeling", "goblin"], volcanic: ["golem", "shade"], mushroom: ["mushroom", "sporeling"], meadow: ["mushroom", "goblin"], ruins: ["golem", "shade"],
   plains: ["mushroom", "mushroom", "goblin"],
   forest: ["goblin", "sporeling", "sporeling"],

@@ -10,9 +10,9 @@ import { BUILDINGS, TREASURES, ROOM, doorOf, createInterior, prepareExploration,
 import { drawBuildings, drawGroundDetails, drawInterior, drawTreasure } from './scenery';
 import { Audio } from "./audio";
 
-export const VW = 480;
-export const VH = 270;
-const TIER: Record<Biome, number> = { autumn: 2, swamp: 3, coast: 2, jungle: 3, volcanic: 5, mushroom: 2, meadow: 1, ruins: 4, plains: 1, forest: 2, desert: 3, mountain: 4, cave: 5 };
+export let VW = 480;
+export let VH = 270;
+const TIER: Record<Biome, number> = { cherry: 2, aurora: 4, enchanted: 3, badlands: 4, autumn: 2, swamp: 3, coast: 2, jungle: 3, volcanic: 5, mushroom: 2, meadow: 1, ruins: 4, plains: 1, forest: 2, desert: 3, mountain: 4, cave: 5 };
 const BOSS_LOOK: Record<string, { kind: EnemyKind; tint: string; scale: number }> = {
   king_mush: { kind: "mushroom", tint: "#c02090", scale: 2.6 },
   ent: { kind: "sporeling", tint: "#2a7a2a", scale: 2.8 },
@@ -132,6 +132,15 @@ export class Game {
     p.hp = this.maxHp(); p.mp = this.maxMp();
   }
 
+  resize(width: number, height: number) {
+    const scale = width < 700 ? 2 : 2.5;
+    VW = Math.ceil(width / scale); VH = Math.ceil(height / scale);
+    this.canvas.width = VW; this.canvas.height = VH;
+    this.light.width = VW; this.light.height = VH;
+    this.ctx.imageSmoothingEnabled = false;
+    this.weather.forEach(f => {f.x = Math.random()*VW; f.y = Math.random()*VH;});
+  }
+
   // ---------- stats ----------
   stats(): Stats {
     const s = { ...this.p.base };
@@ -190,9 +199,9 @@ export class Game {
   }
   spawnEnemies() {
     let tries = 0;
-    while (this.enemies.length < 260 && tries < 20000) {
+    while (this.enemies.length < 850 && tries < 20000) {
       tries++;
-      const tx = 4 + Math.floor(Math.random() * (W - 8)), ty = 4 + Math.floor(Math.random() * (H - 8));
+      const tx = 4 + Math.floor(Math.random() * (this.enemies.length < 180 ? 310 : W - 8)), ty = 4 + Math.floor(Math.random() * (this.enemies.length < 180 ? 230 : H - 8));
       const t = tileAt(this.world, tx, ty);
       if (t === T.WATER || t === T.COBBLE || solidAt(this.world, tx * TS + 8, ty * TS + 8)) continue;
       if (Math.hypot(tx - 122, ty - 126) < 18) continue;
@@ -966,8 +975,9 @@ export class Game {
       let v = Math.floor(hash(tx, ty, 1) * 4);
       if (t === T.WATER) v = (v + Math.floor(wt * 2)) % 4;
       if (t === T.LAVA) v = (v + Math.floor(wt * 3)) % 4;
-      const tree = [T.TREE,T.DTREE,T.AUTUMN_TREE,T.PALM].includes(t as 4);
-      c.drawImage(this.tiles[tree && this.art.canopy.complete && this.art.canopy.naturalWidth ? T.GRASS : t][v], tx * TS, ty * TS);
+      const tree = [T.TREE,T.DTREE,T.AUTUMN_TREE,T.PALM,T.PINE,T.MUSHROOM,T.CRYSTAL].includes(t as 4);
+      const ground = tree ? (this.biome === "aurora" || t === T.PINE ? T.SNOW : t === T.MUSHROOM ? T.MOSS : T.GRASS) : t;
+      if (!this.art.ground(c, ground, tx, ty, wt, this.world.biomes[ty*W+tx])) c.drawImage(this.tiles[ground][v], tx * TS, ty * TS);
     }
     drawGroundDetails(c,this.world,x0,y0,x1,y1,wt);
     if(this.interior) {
@@ -975,6 +985,7 @@ export class Game {
       drawTreasure(c,110*TS+8,106*TS+12,this.openedChests.has(`house-${this.interior.id}`),wt);
     } else {
       drawBuildings(c,wt);
+      this.art.buildings(c);
       renderSettlement(this,c);
       for(const t of TREASURES) if(t.tx>=x0-1&&t.tx<=x1&&t.ty>=y0-1&&t.ty<=y1)drawTreasure(c,t.tx*TS+8,t.ty*TS+12,this.openedChests.has(t.id),wt);
     }
@@ -1001,7 +1012,7 @@ export class Game {
     if (!this.interior) {
       for(let ty=y0-3;ty<=y1+3;ty++)for(let tx=x0-3;tx<=x1+3;tx++) {
         const t=tileAt(this.world,tx,ty);
-        if([T.TREE,T.DTREE,T.AUTUMN_TREE,T.PALM].includes(t as 4))draws.push({y:ty*TS+16,f:()=>this.art.tree(c,t,tx,ty,wt)});
+        if([T.TREE,T.DTREE,T.AUTUMN_TREE,T.PALM,T.PINE,T.MUSHROOM,T.CRYSTAL].includes(t as 4))draws.push({y:ty*TS+16,f:()=>this.art.tree(c,t,tx,ty,wt,this.world.biomes[ty*W+tx])});
       }
       draws.push({y:111*TS,f:()=>this.art.village(c,wt)});
     }
@@ -1041,7 +1052,7 @@ export class Game {
       const armor = ITEMS[p.equip.armor ?? "cloth"];
       const ring = p.equip.amulet ? ITEMS[p.equip.amulet].color : "#ddc58e";
       const w = this.weapon();
-      drawChar(c, p.x, p.y, { skin: "#f4c8a0", hair: "#e8a030", body: armor.color, legs: "#3a3060", accent: ring }, p.dir, p.frame, { kind: w.weapon ?? "sword", color: w.color }, Math.max(0, p.attackT));
+      if (!this.art.character(c,p.x,p.y,p.dir,p.frame,wt)) drawChar(c, p.x, p.y, { skin: "#f4c8a0", hair: "#e8a030", body: armor.color, legs: "#3a3060", accent: ring }, p.dir, p.frame, { kind: w.weapon ?? "sword", color: w.color }, Math.max(0, p.attackT));
     } });
     draws.sort((a, b) => a.y - b.y);
     for (const d of draws) d.f();
@@ -1138,7 +1149,7 @@ export class Game {
   }
   renderWeather() {
     const c = this.ctx, dt = this.lastDelta;
-    if (this.biome === "mountain") {
+    if (this.biome === "mountain" || this.biome === "aurora") {
       c.fillStyle = "rgba(230,240,255,0.12)"; c.fillRect(0, 0, VW, VH);
       c.fillStyle = "#ffffff";
       for (const f of this.weather) {
@@ -1154,7 +1165,7 @@ export class Game {
       c.fillStyle = "rgba(20,30,60,0.15)"; c.fillRect(0, 0, VW, VH);
       c.fillStyle = "rgba(170,200,255,0.6)";
       for (const f of this.weather) { f.y += 300 * dt; f.x -= 60 * dt; if (f.y > VH) { f.y = -5; f.x = Math.random() * (VW + 60); } c.fillRect(f.x, f.y, 1, 5); }
-    } else if (this.biome === "forest") {
+    } else if (["forest","enchanted","cherry","mushroom"].includes(this.biome)) {
       // fireflies
       for (const f of this.weather.slice(0, 25)) {
         const x = (f.x + Math.sin(this.clock * 0.7 + f.s * 20) * 20) % VW, y = (f.y + Math.cos(this.clock * 0.5 + f.s * 30) * 15) % VH;
