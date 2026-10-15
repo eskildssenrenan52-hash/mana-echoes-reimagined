@@ -264,11 +264,8 @@ function Index() {
                 <div className="relative w-full" style={{ aspectRatio: `${W}/${H}` }}>
                   <img src={mapUrl} alt="Mapa do mundo" className="w-full h-full" style={{ imageRendering: "pixelated" }} />
                   <div className="absolute w-2 h-2 bg-destructive animate-pulse" style={{ left: `${(p.x / 16 / W) * 100}%`, top: `${(p.y / 16 / H) * 100}%` }} />
-                  {STATUES.map((s) => {
-                    const on = g.statues.has(s.id);
-                    return <Button variant="game" key={s.id} disabled={!on} onClick={() => { g.travel(s.id); setPanel(null); }} className="absolute -translate-x-1/2 -translate-y-1/2 game-btn text-[10px] disabled:opacity-40" style={{ left: `${(s.tx / W) * 100}%`, top: `${(s.ty / H) * 100}%` }}>{on ? "◆ " : "◇ "}{s.name}</Button>;
-                  })}
                 </div>
+                <div className="travel-destinations">{STATUES.map(st=><Button variant="outline" key={st.id} disabled={!g.statues.has(st.id)} onClick={()=>{g.travel(st.id);setPanel(null);}}>{g.statues.has(st.id)?'◆':'◇'} {st.name}</Button>)}</div>
                 <div className="text-[10px] opacity-60 mt-1">Toque nas estátuas de Mana pelo mundo para ativá-las e viajar.</div>
               </Modal>
             )}

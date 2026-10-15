@@ -976,7 +976,7 @@ export class Game {
       if (t === T.WATER) v = (v + Math.floor(wt * 2)) % 4;
       if (t === T.LAVA) v = (v + Math.floor(wt * 3)) % 4;
       const tree = [T.TREE,T.DTREE,T.AUTUMN_TREE,T.PALM,T.PINE,T.MUSHROOM,T.CRYSTAL].includes(t as 4);
-      const ground = tree ? (this.biome === "aurora" || t === T.PINE ? T.SNOW : t === T.MUSHROOM ? T.MOSS : T.GRASS) : t;
+      const ground = !this.interior && (t === T.ROOF || t === T.WALL || t === T.DOOR) ? T.GRASS : tree ? (this.biome === "aurora" || t === T.PINE ? T.SNOW : t === T.MUSHROOM ? T.MOSS : T.GRASS) : t;
       if (!this.art.ground(c, ground, tx, ty, wt, this.world.biomes[ty*W+tx])) c.drawImage(this.tiles[ground][v], tx * TS, ty * TS);
     }
     drawGroundDetails(c,this.world,x0,y0,x1,y1,wt);
