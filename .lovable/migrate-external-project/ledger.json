@@ -1,0 +1,47 @@
+{
+  "source": "https://github.com/eskildssenrenan52-hash/mana-echoes-reborn",
+  "capabilities": [
+    {
+      "capability": "game code, combat, quests, inventory, interiors, spirits, farming, building, crafting, audio",
+      "source": "repository inspection",
+      "outcome": "migrate",
+      "status": "pending",
+      "next_action": "Import and verify"
+    },
+    {
+      "capability": "browser saved game",
+      "source": "repository inspection",
+      "outcome": "preserve",
+      "status": "pending",
+      "next_action": "Import and verify"
+    },
+    {
+      "capability": "original art and attribution",
+      "source": "repository inspection",
+      "outcome": "migrate",
+      "status": "pending",
+      "next_action": "Import and verify"
+    },
+    {
+      "capability": "world expansion, generated artwork and full-screen controls",
+      "source": "repository inspection",
+      "outcome": "migrate",
+      "status": "pending",
+      "next_action": "Import and verify"
+    },
+    {
+      "capability": "auth, database, providers, webhooks and schedules",
+      "source": "repository inspection",
+      "outcome": "not_detected",
+      "status": "not_applicable",
+      "next_action": null
+    },
+    {
+      "capability": "cutover and verification",
+      "source": "repository inspection",
+      "outcome": "migrate",
+      "status": "pending",
+      "next_action": "Import and verify"
+    }
+  ]
+}
