@@ -242,3 +242,65 @@ body {font-family:'DM Sans',sans-serif;letter-spacing:0;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
 
 @media(max-width:700px){.game-viewport>canvas{object-fit:fill}.game-viewport .absolute.bottom-2>button{width:36px;height:42px;font-size:6px}.game-viewport .absolute.bottom-2>div{height:42px;font-size:7px;padding:0 4px}.game-viewport .absolute.bottom-2>button>span:last-child{display:none}.game-viewport .absolute.bottom-2{gap:2px}.game-viewport .status-bar{width:74px}.game-viewport .status-bar>div:first-child{font-size:8px}}
+
+/* Full-viewport game interface */
+:root {--hud-shadow:0 5px 24px oklch(.08 .025 160 / .38);--hud-edge:oklch(.75 .072 86 / .55);--hud-glass:oklch(.17 .025 165 / .88);--caption-bg:oklch(.12 .02 160 / .72);}
+html,body {margin:0;overflow:hidden;overscroll-behavior:none;}
+.immersive {position:relative;padding:0;width:100%;height:100dvh;min-height:0;overflow:hidden;}
+.immersive .game-layout {max-width:none;height:100%;}
+.immersive .game-viewport {position:absolute;inset:0;width:100%;height:100%;max-height:none;border:0;border-radius:0;box-shadow:none;aspect-ratio:auto!important;}
+.immersive .game-viewport>canvas {width:100%;height:100%;object-fit:fill;touch-action:none;}
+.immersive .game-header {position:absolute;z-index:10;top:22px;left:28px;border:0;padding:0;pointer-events:none;}
+.immersive .game-brand {font-size:24px;text-shadow:0 2px 8px var(--shade);gap:10px;}
+.immersive .game-brand small {font-size:7px;color:var(--foreground);opacity:.8;margin-top:3px;}
+.immersive .header-right {display:none;}
+.immersive .game-location {position:absolute;z-index:10;top:29px;left:50%;transform:translateX(-50%);padding:9px 17px;background:var(--caption-bg);border:1px solid var(--hud-edge);border-radius:4px;white-space:nowrap;gap:22px;}
+.immersive .game-location>span:first-child {font-family:'Cinzel',serif;color:var(--primary);}
+.immersive .game-location>span:first-child>span,.immersive .game-location>span:first-child>svg:last-of-type {display:none;}
+.immersive .game-panel {background:var(--hud-glass);border-color:var(--hud-edge);box-shadow:var(--hud-shadow);backdrop-filter:blur(10px);}
+.player-hud {position:absolute;top:91px;left:28px;width:226px;}
+.player-name {display:flex;align-items:center;gap:10px;padding-bottom:5px;font-family:'Cinzel',serif;font-size:14px;}
+.player-name small {display:block;font-family:'DM Sans',sans-serif;font-size:7px;color:var(--primary);margin-top:4px;}
+.player-name b {margin-left:auto;border:1px solid var(--hud-edge);border-radius:50%;width:26px;height:26px;text-align:center;line-height:24px;color:var(--primary);}
+.player-name .art-icon {width:38px;height:38px;}
+.immersive .status-bar {width:100%;}
+.immersive .status-bar>div:first-child {font-size:9px;margin-bottom:3px;}
+.immersive .status-bar>div:last-child {height:5px;border:0;border-radius:2px;overflow:hidden;}
+.quest-tracker {position:absolute;right:26px;top:248px;width:214px;}
+.quest-heading {display:flex;gap:8px;align-items:center;font-size:9px;margin-bottom:12px;}
+.quest-heading .art-icon {width:24px;height:24px;}
+.world-minimap {position:absolute;top:24px;right:26px;width:214px;height:197px;padding:8px;}
+.minimap-open {position:relative;width:100%;height:100%;padding:0;display:block;overflow:hidden;border-radius:3px;}
+.minimap-open>img {width:100%;height:calc(100% - 28px);object-fit:cover;image-rendering:pixelated;opacity:.9;}
+.map-player {position:absolute;width:5px;height:5px;border-radius:50%;background:var(--foreground);box-shadow:0 0 0 2px var(--destructive);}
+.minimap-caption {display:flex;align-items:center;justify-content:center;gap:7px;height:28px;font-size:8px;color:var(--primary);}
+.minimap-caption .art-icon {width:20px;height:20px;}
+.art-icon {position:relative;display:block;flex-shrink:0;width:44px;height:44px;overflow:hidden;}
+.art-icon img {position:absolute;max-width:none;width:400%;height:300%;image-rendering:auto;pointer-events:none;}
+.art-cell-0 img,.art-cell-4 img,.art-cell-8 img {left:0;}.art-cell-1 img,.art-cell-5 img,.art-cell-9 img {left:-100%;}.art-cell-2 img,.art-cell-6 img,.art-cell-10 img {left:-200%;}.art-cell-3 img,.art-cell-7 img,.art-cell-11 img {left:-300%;}
+.art-cell-0 img,.art-cell-1 img,.art-cell-2 img,.art-cell-3 img {top:0;}.art-cell-4 img,.art-cell-5 img,.art-cell-6 img,.art-cell-7 img {top:-100%;}.art-cell-8 img,.art-cell-9 img,.art-cell-10 img,.art-cell-11 img {top:-200%;}
+.action-cluster {position:absolute;bottom:40px;right:28px;width:282px;height:260px;pointer-events:none;}
+.action-cluster .orb {position:absolute;pointer-events:auto;background:none;border:0;padding:0;border-radius:50%;width:72px;height:72px;overflow:visible;transition:transform .15s,filter .15s;}
+.action-cluster .orb:hover {transform:translateY(-3px);filter:brightness(1.15);background:none;}
+.action-cluster .orb:active {transform:scale(.93);}
+.orb .art-icon {width:100%;height:100%;filter:drop-shadow(0 4px 5px var(--shade));}
+.orb>span:last-child:not(.art-icon) {position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-size:8px;text-shadow:0 2px 3px var(--shade);color:var(--foreground);}
+.orb-magic {right:14px;top:0;}.orb-mine {left:44px;top:28px;}.orb-axe {left:0;top:114px;}.orb-interact {left:72px;bottom:1px;}.orb-potion {right:0;bottom:0;}
+.action-cluster .orb-attack {right:19px;top:94px;width:102px;height:102px;}
+.orb-attack>span:last-child {font-size:10px!important;}
+.immersive-nav {position:absolute;z-index:12;bottom:47px;left:28px;display:flex;gap:3px;padding:7px 8px;}
+.immersive-nav button {width:42px;height:42px;padding:0;border-radius:50%;background:none;}
+.immersive-nav .art-icon {width:36px;height:36px;}
+.nav-selected {filter:brightness(1.4);outline:1px solid var(--primary);}
+.spirit-dock {position:absolute;left:50%;bottom:47px;transform:translateX(-50%);display:flex;gap:7px;}
+.spirit-dock button {position:relative;padding:0;width:36px;height:36px;border-radius:50%;background:none;}
+.spirit-dock .art-icon {width:36px;height:36px;}.spirit-dock button:nth-child(2) .art-icon {filter:hue-rotate(60deg);}.spirit-dock button:nth-child(3) .art-icon {filter:hue-rotate(130deg);}.spirit-dock button:nth-child(4) .art-icon {filter:hue-rotate(200deg);}
+.spirit-dock button>span:last-child:not(.art-icon) {position:absolute;bottom:-12px;font-size:8px;}.spirit-selected {outline:1px solid var(--primary);}
+.screen-tools {position:absolute;bottom:107px;left:28px;z-index:12;display:flex;gap:6px;}.screen-tools button {background:var(--hud-glass);color:var(--primary);border:1px solid var(--hud-edge);width:30px;height:30px;}
+.world-caption {position:absolute;bottom:13px;left:28px;right:28px;display:flex;align-items:center;gap:8px;font-size:8px;color:var(--foreground);text-shadow:0 1px 3px var(--shade);}.world-caption>span:last-of-type {margin-left:auto;color:var(--primary);}.world-caption a {opacity:.7;margin-left:12px;}
+.immersive .game-toasts {position:absolute;top:285px;left:28px;max-width:270px;pointer-events:none;}.immersive .game-toasts>div {font-size:10px;}
+.movement-pad {position:absolute;bottom:159px;left:28px;display:grid;grid-template-columns:repeat(3,38px);grid-template-rows:repeat(2,38px);gap:3px;opacity:.72;touch-action:none;}
+.movement-pad button {width:38px;height:38px;padding:0;border:1px solid var(--hud-edge);background:var(--hud-glass);border-radius:50%;color:var(--primary);}.movement-pad button:first-child {grid-column:2;}.movement-pad button:nth-child(2) {grid-row:2;grid-column:1;}.movement-pad button:nth-child(3) {grid-row:2;grid-column:2;}.movement-pad button:nth-child(4) {grid-row:2;grid-column:3;}
+@media(max-width:1000px){.immersive .game-location{top:32px;left:46%;}.immersive .game-location>span:last-child{display:none;}.spirit-dock{left:46%;}.immersive-nav{gap:0;padding:6px;}.immersive-nav button{width:36px;height:36px;}.immersive-nav .art-icon{width:31px;height:31px;}.quest-tracker{width:180px;}.world-minimap{width:180px;height:170px;}.quest-tracker{top:214px;}}
+@media(max-width:700px){.immersive .game-header{top:14px;left:14px;}.immersive .game-brand{font-size:17px;}.immersive .game-brand>svg{width:19px;}.immersive .game-brand small{font-size:5px;}.immersive .game-location{left:14px;top:66px;transform:none;padding:6px 9px;font-size:8px;}.player-hud{top:105px;left:14px;width:150px;padding:9px;}.player-name{font-size:10px;gap:5px;}.player-name .art-icon{width:27px;height:27px;}.player-name small{font-size:5px;}.player-name b{width:21px;height:21px;line-height:19px;}.player-hud>div:nth-child(2){font-size:8px;gap:5px;}.immersive .status-bar{width:100%;}.world-minimap{right:14px;top:14px;width:110px;height:114px;padding:5px;}.minimap-caption{font-size:5px;gap:2px;}.minimap-caption .art-icon{width:15px;height:15px;}.quest-tracker{display:none;}.action-cluster{right:14px;bottom:64px;transform:scale(.73);transform-origin:bottom right;}.immersive-nav{left:14px;right:14px;bottom:26px;justify-content:space-between;padding:4px;}.immersive-nav button{width:31px;height:31px;}.immersive-nav .art-icon{width:29px;height:29px;}.screen-tools{left:14px;bottom:76px;}.screen-tools button{width:27px;height:27px;}.movement-pad{left:14px;bottom:125px;grid-template-columns:repeat(3,34px);grid-template-rows:repeat(2,34px);}.movement-pad button{width:34px;height:34px;}.spirit-dock{left:14px;bottom:220px;transform:none;gap:5px;}.spirit-dock button,.spirit-dock .art-icon{width:24px;height:24px;}.world-caption{left:14px;right:14px;bottom:7px;font-size:5px;}.world-caption>span:last-of-type{font-size:5px;}.world-caption a{margin-left:4px;}.immersive .game-toasts{top:260px;left:14px;max-width:170px;}.immersive .game-toasts>div{font-size:8px;}.modal-content{max-height:85%;padding:14px;}.modal-content .grid-cols-6{grid-template-columns:repeat(4,minmax(0,1fr));}.modal-content .w-48{width:100px;}.modal-content .font-body{font-size:13px;}}
+@media(max-height:600px) and (min-width:700px){.player-hud{top:80px;}.quest-tracker{display:none;}.world-minimap{height:130px;width:165px;}.action-cluster{transform:scale(.75);transform-origin:bottom right;bottom:28px;}.immersive-nav{bottom:28px;}.spirit-dock{bottom:34px;}.movement-pad{bottom:138px;}.screen-tools{bottom:85px;}.game-toasts{top:240px!important;}}
