@@ -984,7 +984,6 @@ export class Game {
       drawInterior(c,this.interior,wt);
       drawTreasure(c,110*TS+8,106*TS+12,this.openedChests.has(`house-${this.interior.id}`),wt);
     } else {
-      drawBuildings(c,wt);
       this.art.buildings(c);
       renderSettlement(this,c);
       for(const t of TREASURES) if(t.tx>=x0-1&&t.tx<=x1&&t.ty>=y0-1&&t.ty<=y1)drawTreasure(c,t.tx*TS+8,t.ty*TS+12,this.openedChests.has(t.id),wt);
@@ -1123,7 +1122,7 @@ export class Game {
     }
     c.globalAlpha = 1;
     c.setTransform(1, 0, 0, 1, 0, 0);
-    if (!this.interior) this.renderMinimap();
+    // The React overlay renders the only minimap, without stretching with the world.
     this.renderInteractionPrompt(c);
     if(this.transition>0){c.fillStyle=`rgba(13,24,25,${Math.min(1,this.transition*1.5)})`;c.fillRect(0,0,VW,VH);}
     if (p.dead > 0) { c.fillStyle = `rgba(0,0,0,${Math.min(0.8, (2.5 - p.dead))})`; c.fillRect(0, 0, VW, VH); }
